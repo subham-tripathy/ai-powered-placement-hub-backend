@@ -2,8 +2,12 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
 
-function generateJWT({ id, name, role }) {
-    const SECRET = "RajaBhaiKiJaiHo";
+function generateJWT( id, name, role) {
+    const SECRET = process.env.SECRET_KEY;
+    if (!SECRET) {
+        throw new Error("Missing SECRET_KEY environment variable");
+    }
+
     const payload = {
         sub: String(id),
         name,
@@ -75,4 +79,5 @@ async function signup({ id, name, email, pw }) {
     return { status: "success", token: generateJWT(id, name, "company") };
 }
 
+console.log(generateJWT("subham", "subham tripathy", "highsecuritypassword"))
 module.exports = { login, updateAcc, signup };
