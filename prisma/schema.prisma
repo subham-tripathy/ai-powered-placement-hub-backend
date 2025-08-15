@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  url      = "mysql://avnadmin:AVNS_fQqlyus8pF1bYvnv4l0@mysql-35c9ec94-subhamtripathy962-project0.d.aivencloud.com:18098/ai-powered-placement-hub"
 }
 
 model users{

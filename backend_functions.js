@@ -1,64 +1,78 @@
-const { PrismaClient } = require("@prisma/client")
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const jwt = require("jsonwebtoken");
 
-async function login(id, pw) {
-    const user = await prisma.users.findUnique({
-        where: { id: id },
-    })
-    if (user == null) return "noAcc"
-    if (user.pw != pw) return "pwError"
-    return "success"
+function generateJWT({ id, name, role }) {
+    const SECRET = "RajaBhaiKiJaiHo";
+    const payload = {
+        sub: String(id),
+        name,
+        role,
+    };
+
+    return jwt.sign(payload, SECRET, {
+        algorithm: "HS256",
+        expiresIn: "15m",
+    });
 }
 
-async function updateAcc({ id = null, name = null, email = null, pw = null }) {
-    if (id != null) {
-        const user = await prisma.users.findUnique({
-            where: { id: id }
-        })
-        if (user != null) {
-            const updatedData = {}
-            if (name != null)
-                updatedData.name = name
-            if (email != null)
-                updatedData.email = email
-            if (pw != null)
-                updatedData.pw = pw
-            await prisma.users.update({
-                where: { id: id },
-                data: updatedData
-            })
-        }
-    }
+async function login(id, pw) {
+    if (!id || !pw) return "missingFields";
+
+    const user = await prisma.users.findUnique({
+        where: { id },
+    });
+    if (!user) return "noAcc";
+    if (user.pw !== pw) return "pwError";
+    return {
+        status: "success",
+        token: generateJWT(user.id, user.name, user.role),
+    };
+}
+
+async function updateAcc({ id, name, email, pw }) {
+    if (!id) return "missingId";
+
+    const user = await prisma.users.findUnique({
+        where: { id },
+    });
+    if (!user) return "noAcc";
+
+    const updatedData = {};
+    if (name) updatedData.name = name;
+    if (email) updatedData.email = email;
+    if (pw) updatedData.pw = pw;
+
+    if (Object.keys(updatedData).length === 0) return "noChanges";
+
+    await prisma.users.update({
+        where: { id },
+        data: updatedData,
+    });
+
+    return "success";
 }
 
 async function signup({ id, name, email, pw }) {
+    if (!id || !name || !email || !pw) return "missingFields";
+    console.log(id, name, email, pw);
+
     const user = await prisma.users.findUnique({
         where: { id: id },
-    })
-    if (user != null) {
-        return "userExists";
-    }
-    else {
-        await prisma.users.create({
-            data: {
-                id: id,
-                name: name,
-                email: email,
-                pw: pw,
-                role: "company",
-            }
-        })
-        return "success"
-    }
+    });
+    if (user != null) return "userExists";
+
+    await prisma.users.create({
+        data: {
+            id: id,
+            name: name,
+            email: email,
+            pw: pw,
+            role: "company",
+        },
+    });
+
+    return { status: "success", token: generateJWT(id, name, "company") };
 }
 
-
-
-
-(async () => {
-})()
-
-
-
-
-module.exports = { login, updateAcc }
+module.exports = { login, updateAcc, signup };
