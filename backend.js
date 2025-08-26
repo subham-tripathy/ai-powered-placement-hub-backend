@@ -2,7 +2,7 @@ const cors = require("cors");
 const express = require("express");
 const app = express();
 const { PrismaClient } = require("@prisma/client");
-const { signup } = require("./backend_functions");
+const { signup, login } = require("./backend_functions");
 const prisma = new PrismaClient();
 const port = 3000;
 
@@ -19,8 +19,13 @@ app.get("/allUsers", async (req, res) => {
 
 app.post("/signup", async (req, res) => {
   const { id, name, email, pw } = req.body;
-  const result = await signup({ id, name, email, pw });
-  console.log(result)
+  const result = await signup(id, name, email, pw);
+  res.json(result);
+});
+
+app.post("/login", async (req, res) => {
+  const { id, pw } = req.body;
+  const result = await login(id, pw);
   res.json(result);
 });
 
