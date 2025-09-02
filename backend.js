@@ -29,6 +29,11 @@ app.post("/login", async (req, res) => {
   res.json(result);
 });
 
+app.post("/searchStudent", async (req, res) => {
+  const { id } = req.body;
+  res.json(await prisma.students.findUnique({ where: { id: id } }));
+});
+
 app.listen(port, () => {
   console.log("node js server is running ✅");
 });

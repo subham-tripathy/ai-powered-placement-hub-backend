@@ -8,9 +8,20 @@ datasource db {
 }
 
 model users {
-    id    String @id
-    name  String
-    email String
-    role  String
-    pw    String
+    id      String @id
+    name    String
+    email   String
+    role    String
+    pw      String
+    student students?
+}
+
+model students{
+    id          String @id
+    name        String
+    age         Int
+    gender      String
+    email       String
+    phno        String
+    user        users @relation(fields: [id], references: [id])
 }
